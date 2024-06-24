@@ -38,6 +38,26 @@ const presets = {
         "delayTime": "0.1",
         "delayDecay": "0.48",
         "distortionAmount": "0.11"
+      },
+      "base drum 1": {
+        "volume1": "0.32",
+        "waveform1": "triangle",
+        "xEnv1": "8",
+        "volume2": "0.32",
+        "waveform2": "triangle",
+        "xEnv2": "7",
+        "noiseVolume": "0.33",
+        "semitone": "-10",
+        "detune": "-7",
+        "attack": "0",
+        "decay": "0",
+        "sustain": "0.5",
+        "release": "0.35",
+        "filterType": "lowpass",
+        "filterFrequency": "359",
+        "delayTime": "0",
+        "delayDecay": "0.33",
+        "distortionAmount": "0.05"
       }
   };
   

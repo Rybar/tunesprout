@@ -381,6 +381,98 @@ function applyPreset(preset) {
   initAudio();
 }
 
+function getPresetURL() {
+  const settings = {
+    volume1: document.getElementById('volume1').value,
+    waveform1: document.getElementById('waveform1').value,
+    xEnv1: document.getElementById('xenv1').value,
+    volume2: document.getElementById('volume2').value,
+    waveform2: document.getElementById('waveform2').value,
+    xEnv2: document.getElementById('xenv2').value,
+    noiseVolume: document.getElementById('noiseVolume').value,
+    semitone: document.getElementById('semitone').value,
+    detune: document.getElementById('detune').value,
+    attack: document.getElementById('attack').value,
+    decay: document.getElementById('decay').value,
+    sustain: document.getElementById('sustain').value,
+    release: document.getElementById('release').value,
+    filterType: document.querySelector('input[name="filterType"]:checked').value,
+    filterFrequency: document.getElementById('filterFrequency').value,
+    delayTime: document.getElementById('delayTime').value,
+    delayDecay: document.getElementById('delayDecay').value,
+    distortionAmount: document.getElementById('distortionAmount').value
+  };
+
+  const params = new URLSearchParams(settings);
+  return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+}
+
+function loadPresetFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const settings = {};
+
+  params.forEach((value, key) => {
+    settings[key] = value;
+  });
+
+  if (Object.keys(settings).length > 0) {
+    applyPresetSettings(settings);
+  }
+}
+
+function applyPresetSettings(settings) {
+  document.getElementById('volume1').value = settings.volume1;
+  document.getElementById('waveform1').value = settings.waveform1;
+  document.getElementById('xenv1').value = settings.xEnv1;
+  document.getElementById('volume2').value = settings.volume2;
+  document.getElementById('waveform2').value = settings.waveform2;
+  document.getElementById('xenv2').value = settings.xEnv2;
+  document.getElementById('noiseVolume').value = settings.noiseVolume;
+  document.getElementById('semitone').value = settings.semitone;
+  document.getElementById('detune').value = settings.detune;
+  document.getElementById('attack').value = settings.attack;
+  document.getElementById('decay').value = settings.decay;
+  document.getElementById('sustain').value = settings.sustain;
+  document.getElementById('release').value = settings.release;
+  document.querySelector(`input[name="filterType"][value="${settings.filterType}"]`).checked = true;
+  document.getElementById('filterFrequency').value = settings.filterFrequency;
+  document.getElementById('delayTime').value = settings.delayTime;
+  document.getElementById('delayDecay').value = settings.delayDecay;
+  document.getElementById('distortionAmount').value = settings.distortionAmount;
+
+  // Update the displayed values
+  updateVolumeDisplay('volume1', 'volume1Value');
+  updateVolumeDisplay('volume2', 'volume2Value');
+  updateVolumeDisplay('noiseVolume', 'noiseVolumeValue');
+  updateVolumeDisplay('xenv1', 'xenv1Value');
+  updateVolumeDisplay('xenv2', 'xenv2Value');
+  updateVolumeDisplay('semitone', 'semitoneValue');
+  updateVolumeDisplay('detune', 'detuneValue');
+  updateVolumeDisplay('attack', 'attackValue');
+  updateVolumeDisplay('decay', 'decayValue');
+  updateVolumeDisplay('sustain', 'sustainValue');
+  updateVolumeDisplay('release', 'releaseValue');
+  updateVolumeDisplay('filterFrequency', 'filterFrequencyValue');
+  updateVolumeDisplay('delayTime', 'delayTimeValue');
+  updateVolumeDisplay('delayDecay', 'delayDecayValue');
+  updateVolumeDisplay('distortionAmount', 'distortionAmountValue');
+
+  // Re-initialize the audio context with the new settings
+  initAudio();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadPresets();
+  loadPresetFromURL(); // Apply preset from URL if present
+  applyPreset('Default'); // Apply the default preset initially
+});
+
+document.getElementById('shareButton').addEventListener('click', () => {
+  const url = getPresetURL();
+  prompt("Copy this URL to share your preset:", url);
+});
+
+
 document.getElementById('startButton').addEventListener('click', function() {
   initAudio();
   setupKeyListeners();
@@ -438,8 +530,8 @@ document.getElementById('noiseVolume').addEventListener('input', initAudio);
 document.getElementById('semitone').addEventListener('input', initAudio);
 document.getElementById('detune').addEventListener('input', initAudio);
 
-// Load presets on page load
 window.addEventListener('DOMContentLoaded', () => {
   loadPresets();
+  loadPresetFromURL(); // Apply preset from URL if present
   applyPreset('Default'); // Apply the default preset initially
 });
