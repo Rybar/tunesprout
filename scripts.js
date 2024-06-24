@@ -1,7 +1,7 @@
 let audioCtx;
 const activeOscillators = {};
 const pressedKeys = {};
-let filter, delay, feedback, distortion;
+let filter, delay, feedback, distortion, analyser, canvas, canvasCtx;
 
 function initAudio() {
   if (audioCtx) {
@@ -16,7 +16,7 @@ function initAudio() {
   filter.connect(audioCtx.destination);
   
   // Create delay nodes
-  delay = audioCtx.createDelay(2.0);
+  delay = audioCtx.createDelay(0.5);
   feedback = audioCtx.createGain();
   updateDelaySettings();
   delay.connect(feedback);
@@ -28,14 +28,42 @@ function initAudio() {
   updateDistortionSettings();
   distortion.connect(delay);
   distortion.connect(filter);
+
+  // Create compressor node
+  compressor = audioCtx.createDynamicsCompressor();
+  compressor.threshold.setValueAtTime(-50, audioCtx.currentTime);
+  compressor.knee.setValueAtTime(40, audioCtx.currentTime);
+  compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
+  compressor.attack.setValueAtTime(0, audioCtx.currentTime);
+  compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+
+  filter.connect(compressor);
+
+  // Create analyser node
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  filter.connect(analyser);
+  
+  // Setup canvas for visualizer
+  canvas = document.getElementById('visualizer');
+  canvasCtx = canvas.getContext('2d');
+  drawVisualizer();
 }
 
 function updateFilterSettings() {
   const filterType = document.querySelector('input[name="filterType"]:checked').value;
-  const filterFrequency = parseFloat(document.getElementById('filterFrequency').value);
+  const filterFrequency = document.getElementById('filterFrequency');
+  
+  if (filterType === 'lowpass' || filterType === 'highpass') {
+    filterFrequency.min = 20;
+    filterFrequency.max = 20000;
+  } else if (filterType === 'bandpass') {
+    filterFrequency.min = 100;
+    filterFrequency.max = 10000;
+  }
   
   filter.type = filterType;
-  filter.frequency.setValueAtTime(filterFrequency, audioCtx.currentTime);
+  filter.frequency.setValueAtTime(parseFloat(filterFrequency.value), audioCtx.currentTime);
 }
 
 function updateDelaySettings() {
@@ -47,7 +75,7 @@ function updateDelaySettings() {
 }
 
 function makeDistortionCurve(amount) {
-  const k = typeof amount === 'number' ? amount * 800 : 50;
+  const k = typeof amount === 'number' ? amount * 100 : 50;
   const n_samples = 44100;
   const curve = new Float32Array(n_samples);
   const deg = Math.PI / 180;
@@ -232,6 +260,127 @@ function updateVolumeDisplay(sliderId, displayId) {
   });
 }
 
+function drawVisualizer() {
+  requestAnimationFrame(drawVisualizer);
+
+  const bufferLength = analyser.fftSize;
+  const dataArray = new Uint8Array(bufferLength);
+  analyser.getByteTimeDomainData(dataArray);
+
+  canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+  canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+  canvasCtx.lineWidth = 2;
+  canvasCtx.strokeStyle = 'rgb(0, 255, 0)';
+
+  canvasCtx.beginPath();
+  const sliceWidth = (canvas.width * 1.0) / bufferLength;
+  let x = 0;
+
+  for (let i = 0; i < bufferLength; i++) {
+    const v = dataArray[i] / 128.0;
+    const y = (v * canvas.height) / 2;
+
+    if (i === 0) {
+      canvasCtx.moveTo(x, y);
+    } else {
+      canvasCtx.lineTo(x, y);
+    }
+
+    x += sliceWidth;
+  }
+
+  canvasCtx.lineTo(canvas.width, canvas.height / 2);
+  canvasCtx.stroke();
+}
+
+function saveSettings() {
+  const settings = {
+    volume1: document.getElementById('volume1').value,
+    waveform1: document.getElementById('waveform1').value,
+    xEnv1: document.getElementById('xenv1').value,
+    volume2: document.getElementById('volume2').value,
+    waveform2: document.getElementById('waveform2').value,
+    xEnv2: document.getElementById('xenv2').value,
+    noiseVolume: document.getElementById('noiseVolume').value,
+    semitone: document.getElementById('semitone').value,
+    detune: document.getElementById('detune').value,
+    attack: document.getElementById('attack').value,
+    decay: document.getElementById('decay').value,
+    sustain: document.getElementById('sustain').value,
+    release: document.getElementById('release').value,
+    filterType: document.querySelector('input[name="filterType"]:checked').value,
+    filterFrequency: document.getElementById('filterFrequency').value,
+    delayTime: document.getElementById('delayTime').value,
+    delayDecay: document.getElementById('delayDecay').value,
+    distortionAmount: document.getElementById('distortionAmount').value
+  };
+
+  const json = JSON.stringify(settings, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'synth-settings.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function loadPresets() {
+  const presetsDropdown = document.getElementById('presets');
+  presetsDropdown.innerHTML = '';
+
+  for (const preset in presets) {
+    const option = document.createElement('option');
+    option.value = preset;
+    option.textContent = preset;
+    presetsDropdown.appendChild(option);
+  }
+}
+
+function applyPreset(preset) {
+  const settings = presets[preset];
+
+  document.getElementById('volume1').value = settings.volume1;
+  document.getElementById('waveform1').value = settings.waveform1;
+  document.getElementById('xenv1').value = settings.xEnv1;
+  document.getElementById('volume2').value = settings.volume2;
+  document.getElementById('waveform2').value = settings.waveform2;
+  document.getElementById('xenv2').value = settings.xEnv2;
+  document.getElementById('noiseVolume').value = settings.noiseVolume;
+  document.getElementById('semitone').value = settings.semitone;
+  document.getElementById('detune').value = settings.detune;
+  document.getElementById('attack').value = settings.attack;
+  document.getElementById('decay').value = settings.decay;
+  document.getElementById('sustain').value = settings.sustain;
+  document.getElementById('release').value = settings.release;
+  document.querySelector(`input[name="filterType"][value="${settings.filterType}"]`).checked = true;
+  document.getElementById('filterFrequency').value = settings.filterFrequency;
+  document.getElementById('delayTime').value = settings.delayTime;
+  document.getElementById('delayDecay').value = settings.delayDecay;
+  document.getElementById('distortionAmount').value = settings.distortionAmount;
+
+  // Update the displayed values
+  updateVolumeDisplay('volume1', 'volume1Value');
+  updateVolumeDisplay('volume2', 'volume2Value');
+  updateVolumeDisplay('noiseVolume', 'noiseVolumeValue');
+  updateVolumeDisplay('xenv1', 'xenv1Value');
+  updateVolumeDisplay('xenv2', 'xenv2Value');
+  updateVolumeDisplay('semitone', 'semitoneValue');
+  updateVolumeDisplay('detune', 'detuneValue');
+  updateVolumeDisplay('attack', 'attackValue');
+  updateVolumeDisplay('decay', 'decayValue');
+  updateVolumeDisplay('sustain', 'sustainValue');
+  updateVolumeDisplay('release', 'releaseValue');
+  updateVolumeDisplay('filterFrequency', 'filterFrequencyValue');
+  updateVolumeDisplay('delayTime', 'delayTimeValue');
+  updateVolumeDisplay('delayDecay', 'delayDecayValue');
+  updateVolumeDisplay('distortionAmount', 'distortionAmountValue');
+
+  // Re-initialize the audio context with the new settings
+  initAudio();
+}
+
 document.getElementById('startButton').addEventListener('click', function() {
   initAudio();
   setupKeyListeners();
@@ -250,6 +399,11 @@ document.getElementById('startButton').addEventListener('click', function() {
   updateFilterSettings();
   updateDelaySettings();
   updateDistortionSettings();
+});
+
+document.getElementById('saveButton').addEventListener('click', saveSettings);
+document.getElementById('presets').addEventListener('change', function() {
+  applyPreset(this.value);
 });
 
 document.querySelectorAll('input[name="filterType"]').forEach(radio => {
@@ -283,3 +437,9 @@ document.getElementById('waveform2').addEventListener('change', initAudio);
 document.getElementById('noiseVolume').addEventListener('input', initAudio);
 document.getElementById('semitone').addEventListener('input', initAudio);
 document.getElementById('detune').addEventListener('input', initAudio);
+
+// Load presets on page load
+window.addEventListener('DOMContentLoaded', () => {
+  loadPresets();
+  applyPreset('Default'); // Apply the default preset initially
+});

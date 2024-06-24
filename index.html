@@ -5,9 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Synthesizer</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="presets.js"></script> <!-- Add this line to load presets.js -->
 </head>
 <body>
   <div class="synth-container">
+    <label>Presets:
+      <select id="presets">
+        <option value="default">Default</option>
+      </select>
+    </label>
     <label>Volume 1: <input type="range" id="volume1" min="0" max="0.5" step="0.01" value="0.2">
     <span id="volume1Value">0.2</span></label>
     <label>Waveform 1:
@@ -61,7 +67,7 @@
     <span id="filterFrequencyValue">1000</span> Hz</label>
     
     <h3>Delay/Echo</h3>
-    <label>Delay Time: <input type="range" id="delayTime" min="0" max="2" step="0.01" value="0.5">
+    <label>Delay Time: <input type="range" id="delayTime" min="0" max="0.5" step="0.01" value="0.5">
     <span id="delayTimeValue">0.5</span> sec</label>
     <label>Decay Amount: <input type="range" id="delayDecay" min="0" max="1" step="0.01" value="0.5">
     <span id="delayDecayValue">0.5</span></label>
@@ -70,7 +76,10 @@
     <label>Distortion Amount: <input type="range" id="distortionAmount" min="0" max="1" step="0.01" value="0.5">
     <span id="distortionAmountValue">0.5</span></label>
 
+    <canvas id="visualizer" width="600" height="200"></canvas>
+
     <button id="startButton">Start Synthesizer</button>
+    <button id="saveButton">Save Settings</button>
   </div>
   <script src="scripts.js"></script>
 </body>
