@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synthesizer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="synth-container">
+    <label>Volume 1: <input type="range" id="volume1" min="0" max="0.5" step="0.01" value="0.2">
+    <span id="volume1Value">0.2</span></label>
+    <label>Waveform 1:
+      <select id="waveform1">
+        <option value="sine">Sine</option>
+        <option value="triangle">Triangle</option>
+        <option value="sawtooth" selected>Sawtooth</option>
+        <option value="square">Square</option>
+      </select>
+    </label>
+    <label>X-Env 1: <input type="range" id="xenv1" min="0" max="100" step="1" value="0">
+    <span id="xenv1Value">0</span></label>
+    <label>Volume 2: <input type="range" id="volume2" min="0" max="0.5" step="0.01" value="0.2">
+    <span id="volume2Value">0.2</span></label>
+    <label>Waveform 2:
+      <select id="waveform2">
+        <option value="sine">Sine</option>
+        <option value="triangle">Triangle</option>
+        <option value="sawtooth" selected>Sawtooth</option>
+        <option value="square">Square</option>
+      </select>
+    </label>
+    <label>X-Env 2: <input type="range" id="xenv2" min="0" max="100" step="1" value="0">
+    <span id="xenv2Value">0</span></label>
+    <label>Noise Volume: <input type="range" id="noiseVolume" min="0" max="0.5" step="0.01" value="0.02">
+    <span id="noiseVolumeValue">0.02</span></label>
+    <label>Semitone: <input type="range" id="semitone" min="-12" max="12" step="1" value="0">
+    <span id="semitoneValue">0</span></label>
+    <label>Detune: <input type="range" id="detune" min="-100" max="100" step="1" value="2">
+    <span id="detuneValue">2</span></label>
+    <label>Attack: <input type="range" id="attack" min="0" max="5" step="0.01" value="0.1">
+    <span id="attackValue">0.1</span></label>
+    <label>Decay: <input type="range" id="decay" min="0" max="5" step="0.01" value="0.1">
+    <span id="decayValue">0.1</span></label>
+    <label>Sustain: <input type="range" id="sustain" min="0" max="1" step="0.01" value="0.5">
+    <span id="sustainValue">0.5</span></label>
+    <label>Release: <input type="range" id="release" min="0" max="5" step="0.01" value="0.5">
+    <span id="releaseValue">0.5</span></label>
+
+    <h3>Filter</h3>
+    <label>
+      <input type="radio" name="filterType" value="lowpass" checked> Low-Pass
+    </label>
+    <label>
+      <input type="radio" name="filterType" value="bandpass"> Band-Pass
+    </label>
+    <label>
+      <input type="radio" name="filterType" value="highpass"> High-Pass
+    </label>
+    <label>Frequency: <input type="range" id="filterFrequency" min="20" max="20000" step="1" value="1000">
+    <span id="filterFrequencyValue">1000</span> Hz</label>
+    
+    <h3>Delay/Echo</h3>
+    <label>Delay Time: <input type="range" id="delayTime" min="0" max="2" step="0.01" value="0.5">
+    <span id="delayTimeValue">0.5</span> sec</label>
+    <label>Decay Amount: <input type="range" id="delayDecay" min="0" max="1" step="0.01" value="0.5">
+    <span id="delayDecayValue">0.5</span></label>
+    
+    <h3>Distortion</h3>
+    <label>Distortion Amount: <input type="range" id="distortionAmount" min="0" max="1" step="0.01" value="0.5">
+    <span id="distortionAmountValue">0.5</span></label>
+
+    <button id="startButton">Start Synthesizer</button>
+  </div>
+  <script src="scripts.js"></script>
+</body>
+</html>
