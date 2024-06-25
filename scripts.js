@@ -228,16 +228,32 @@ function stopNote(key) {
   if (!active) return;
 
   const now = audioCtx.currentTime;
+  const releaseTime = parseFloat(document.getElementById('release').value);
+  const delayTime = parseFloat(document.getElementById('delayTime').value);
+  const delayDecay = parseFloat(document.getElementById('delayDecay').value);
+
+  // Estimate the total duration of the delay effect (simple approximation)
+  const estimatedDelayDuration = delayTime * (1 / (1 - delayDecay));
+
+  // Trigger the release phase of the ADSR envelope
   triggerADSR(active.osc1.gain, 'stop', now, active.osc1.volume, active.osc1);
   triggerADSR(active.osc2.gain, 'stop', now, active.osc2.volume, active.osc2);
   triggerADSR(active.noiseGain, 'stop', now, active.noiseGain.volume);
 
-  active.osc1.osc.stop(now + parseFloat(document.getElementById('release').value));
-  active.osc2.osc.stop(now + parseFloat(document.getElementById('release').value));
+  // Set a timeout to stop and disconnect the oscillators and noise generator after the release time and delay effect
+  setTimeout(() => {
+    active.osc1.osc.stop();
+    active.osc2.osc.stop();
+    active.noiseGain.disconnect();
+    active.osc1.osc.disconnect();
+    active.osc2.osc.disconnect();
+    active.noiseGain.disconnect();
 
-  delete activeOscillators[key];
-  delete pressedKeys[key];
+    delete activeOscillators[key];
+    delete pressedKeys[key];
+  }, (releaseTime + estimatedDelayDuration) * 1000); // Convert total duration to milliseconds
 }
+
 
 function setupKeyListeners() {
   document.addEventListener('keydown', (event) => {
