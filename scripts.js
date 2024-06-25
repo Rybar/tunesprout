@@ -234,14 +234,10 @@ function stopNote(key) {
 
   active.osc1.osc.stop(now + parseFloat(document.getElementById('release').value));
   active.osc2.osc.stop(now + parseFloat(document.getElementById('release').value));
-  active.osc1.osc.disconnect();
-  active.osc2.osc.disconnect();
-  active.noiseGain.disconnect();
 
   delete activeOscillators[key];
   delete pressedKeys[key];
 }
-
 
 function setupKeyListeners() {
   document.addEventListener('keydown', (event) => {
